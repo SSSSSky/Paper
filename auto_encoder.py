@@ -73,68 +73,20 @@ def Concat(i):
     filelists.sort()
     q = 0
 
-    for filelist in filelists:
-        path = os.path.join(rootdir, filelist)
-        files = os.listdir(path)
-        files.sort()
-        file_path = os.path.join(path, files[i])
-        df1 = pd.read_csv(file_path, index_col='DateTime')
-        df1.fillna(0)
-        df1 = df1.unstack(-1).reset_index()
-        df1.columns = ['SecCode', 'DateTime', filelist]
-        if q == 0:
-            df2 = df1
-        else:
-            df2 = pd.merge(df2, df1, on=['SecCode', 'DateTime'], how = 'inner')
-            df2.dropna(axis=0, inplace=True)
-        q += 1
-
-#     df2.fillna(0)
-#     df2.replace(inf, 0)
-#     df2.replace(-inf,0)
-    return df2
-
 def main():
 
-    join_df = Concat(0)
-    join_df.to_csv('../feature/20100104_20100630.csv')
-    join_df1 = Concat(1)
-    join_df1.to_csv('../feature/20100630_20100728.csv')
-    join_df2 = Concat(2)
-    join_df2.to_csv('../feature/20100728_20101231.csv')
-    join_df3 = Concat(3)
-    join_df3.to_csv('../feature/20101231_20110630.csv')
-    join_df4 = Concat(4)
-    join_df4.to_csv('../feature/20110630_20111230.csv')
-    join_df5 = Concat(5)
-    join_df5.to_csv('../feature/20111230_20120730.csv')
-    join_df6 = Concat(6)
-    join_df6.to_csv('../feature/20120730_20130130.csv')
-    join_df7 = Concat(7)
-    join_df7.to_csv('../feature/20130130_20130730.csv')
-    join_df8 = Concat(8)
-    join_df8.to_csv('../feature/20130730_20131230.csv')
-    join_df9 = Concat(9)
-    join_df9.to_csv('../feature/20131230_20140613.csv')
-    join_df10 = Concat(10)
-    join_df10.to_csv('../feature/20140613_20141212.csv')
-    join_df11 = Concat(11)
-    join_df11.to_csv('../feature/20141212_20150520.csv')
-    join_df12 = Concat(12)
-    join_df12.to_csv('../feature/20150520_20150612.csv')
-    join_df13 = Concat(13)
-    join_df13.to_csv('../feature/20150612_20151211.csv')
-    join_df14 = Concat(14)
-    join_df14.to_csv('../feature/20151211_20160608.csv')
-    join_df15 = Concat(15)
-    join_df15.to_csv('../feature/20160608_20161209.csv')
-    join_df16 = Concat(16)
-    join_df16.to_csv('../feature/20161209_20170609.csv')
-    join_df17 = Concat(17)
-    join_df17.to_csv('../feature/20170609_20171208.csv')
-    join_df18 = Concat(18)
-    join_df18.to_csv('../feature/20171208_20171229.csv')
-
+    path = '../feature/join_feature'
+    files = os.listdir(path)
+    files.sort()
+    q = 0
+    for file in files:
+        file_path = os.path.join(path, file)
+        df1 = pd.read_csv(file_path)
+        if q == 0:
+            join_df = df1
+        else:
+            pd.concat([join_df, df1])
+    
     print(join_df.shape[0])
     print(join_df.columns)
     
