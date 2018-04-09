@@ -1,5 +1,5 @@
 '''
-SingleSparseAutoEncoder and WaveletTransform
+SingleSparseAutoEncoder and Timeline
 '''
 import os
 import numpy as np
@@ -26,9 +26,9 @@ def AdfTest(index_list):
         return index_list
     # 假如不是平稳序列，就对其进行差分
     else:
-        D_data = index_list.diff().dropna()
-        result = AdfTest(D_data)
-        return result
+        D_data = index_list.diff()
+        # result = AdfTest(D_data)
+        return D_data
 
 # 检测是否是非白噪声序列
 # def whitenoise(index_list):
@@ -166,7 +166,14 @@ def run_sparse_auto_encoder(n_input=16, n_hidden_1=5, batch_size=2048, transfer=
     while(columns < 67):
         print('start clomun {}'.format(columns))
         timeline_df = Timeline(scaled_result_df[:,columns])
+        print(timeline_df.shape)
+        i = 0
+        while i < scaled_result_df.shape[0] - timeline_df.shape[0]:
+            mean_df = timeline_df.mean()
+            timeline_df = np.row_stack((timeline_df,mean_df))
+            i += 1
         data_df = np.vstack(data_df, timeline_df)
+        print(data_df.shape)
         columns += 1
     print(data_df.shape)
     # data_df = data_df.T
