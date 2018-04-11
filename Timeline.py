@@ -21,14 +21,10 @@ def AdfTest(index_list):
         if value < adftest[0]:
             i += 1
     # 假如adf值小于两个水平值，p值小于0.05，则判断为平稳序列
-    if i <= 1 and adftest[1] < 0.05:
-        print('Stationary series...')
-        return index_list
-    # 假如不是平稳序列，就对其进行差分
+    if i <= 1 and adftest[1] < 0.01:
+        return 1
     else:
-        D_data = np.diff(index_list)
-        # result = AdfTest(D_data)
-        return D_data
+        return 0
 
 # 检测是否是非白噪声序列
 # def whitenoise(index_list):
@@ -40,10 +36,21 @@ def AdfTest(index_list):
 #         return index_list
 #     else:
 
-
-def Timeline(index_list):
-    stationary_result = AdfTest(index_list)
-    return stationary_result
+def Timeline(index_list, maxdiffn):
+    D_data = index_list.copy()
+    stationary_result = AdfTest(D_data)
+    if stationary_result == 1:
+        print('Stationary series...')
+    else:
+        i = 0
+        # 假如是平稳时间序列，则返回，如果不是，则差分，直到最大差分次数
+        while i < maxdiffn:
+            if AdfTest(D_data) == 1:
+                break
+            else:
+                D_data = np.diff(D_data)
+                print('Diff time: '+str(i+1))
+    return D_data
 
 #AutoEncoder
 def run_sparse_auto_encoder(n_input=16, n_hidden_1=5, batch_size=2048, transfer=tf.nn.sigmoid, epoches=500, rho=0.5,
@@ -133,6 +140,12 @@ def run_sparse_auto_encoder(n_input=16, n_hidden_1=5, batch_size=2048, transfer=
                                 'ma_ma_ratio', 'macd', 'mfi', 'obv', 'pri_ma_ratio', 'price_efficiency',
                                 'pvt', 'return', 'roc', 'rsi', 'vma', 'vol_chg_rate',
                                 'volume_relative_ratio']]
+    # result_df = join_df.loc[:, ['amp', 'ar',
+    #                             'atr', 'bias', 'boll', 'br', 'cci', 'log_vol_chg_rate', 'logreturn',
+    #                             'ma_ma_ratio', 'macd', 'mfi', 'obv', 'pri_ma_ratio', 'price_efficiency',
+    #                             'pvt', 'return', 'roc', 'rsi', 'vma', 'vol_chg_rate',
+    #                             'volume_relative_ratio']]
+    # 22个技术指标，总共67个指标
     print(result_df.shape)
 
     # 去除nan值和inf值
@@ -165,7 +178,7 @@ def run_sparse_auto_encoder(n_input=16, n_hidden_1=5, batch_size=2048, transfer=
     columns = 1
     while(columns < 67):
         print('start clomun {}'.format(columns))
-        timeline_df = Timeline(scaled_result_df[:,columns])
+        timeline_df = Timeline(scaled_result_df[:, columns])
         print(timeline_df.shape)
         i = 0
         while i < scaled_result_df.shape[0] - timeline_df.shape[0]:
