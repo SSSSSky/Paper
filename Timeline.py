@@ -194,14 +194,14 @@ def run_sparse_auto_encoder(n_input=16, n_hidden_1=5, batch_size=2048, transfer=
         i = 0
         while i < scaled_result_df.shape[0] - timeline_df.shape[0]:
             mean_df = timeline_df.mean()
-            timeline_df = np.append(timeline_df, mean_df)
+            timeline_df = np.append((timeline_df, mean_df))
             i += 1
         data_df = np.vstack(data_df, timeline_df)
         print(data_df.shape)
         columns += 1
     print(data_df.shape)
-    # data_df = data_df.T
-    # print(data_df.shape)
+    data_df = data_df.T
+    print(data_df.shape)
     print('finish Timeline...')
 
     config = tf.ConfigProto()
