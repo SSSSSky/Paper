@@ -6,29 +6,15 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from sklearn import preprocessing
+from sklearn.decomposition import PCA
 import matplotlib
-import pywt
-
 matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 
-# WaveletTransform
-def wt(index_list, wavefunc, lv, m, n):
-    coeff = pywt.wavedec(index_list, wavefunc, mode='sym', level=lv)
-    sgn = lambda x: 1 if x > 0 else -1 if x < 0 else 0
-
-    for i in range(m, n+1):
-        cD = coeff[i]
-        for j in range(len(cD)):
-            Tr = np.sqrt(2*np.log(len(cD)))   #计算阈值
-            if cD[j] >= Tr:
-                coeff[i][j] = sgn(cD[j]) - Tr  # 向零收缩
-            else:
-                coeff[i][j] = 0  # 低于阈值置零
-
-    #重构
-    denoised_index = pywt.waverec(coeff, wavefunc)
-    return denoised_index
+# PCA
+def deal_with_pca(df):
+    pca = PCA(n_components= 30)
+    principalCompoents = pca.fit_transform(df)
+    return principalCompoents
 
 #AutoEncoder
 def run_sparse_auto_encoder(n_input=16, n_hidden_1=5, batch_size=2048, transfer=tf.nn.sigmoid, epoches=500, rho=0.5,
@@ -154,18 +140,12 @@ def run_sparse_auto_encoder(n_input=16, n_hidden_1=5, batch_size=2048, transfer=
     scaled_result_df = scaler.transform(result_df)
     print(scaled_result_df.shape)
 
-    print('start wavelettransform...')
-    data_df = wt(scaled_result_df[:,0], 'db4', 3, 1, 3)
-    wavecol = 1
-    while(wavecol < 67):
-        print('start clomun {}'.format(wavecol))
-        wave_df = wt(scaled_result_df[:,wavecol], 'db4', 3, 1, 3)
-        data_df = np.vstack((data_df, wave_df))
-        wavecol += 1
-    #print(data_df.shape)
-    data_df = data_df.T
+    print('start pca process...')
+    data_df = deal_with_pca(scaled_result_df)
     print(data_df.shape)
-    print('finish wavelettransform...')
+    # data_df = data_df.T
+    # print(data_df.shape)
+    print('finish pca process...')
 
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True

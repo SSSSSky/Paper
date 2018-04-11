@@ -1,5 +1,5 @@
 '''
-SingleSparseAutoEncoder and WaveletTransform
+SingleSparseAutoEncoder and Timeline
 '''
 import os
 import numpy as np
@@ -7,28 +7,50 @@ import pandas as pd
 import tensorflow as tf
 from sklearn import preprocessing
 import matplotlib
-import pywt
+from statsmodels.tsa.stattools import adfuller as ADF
+from statsmodels.stats.diagnostic import acorr_ljungbox
 
 matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 
-# WaveletTransform
-def wt(index_list, wavefunc, lv, m, n):
-    coeff = pywt.wavedec(index_list, wavefunc, mode='sym', level=lv)
-    sgn = lambda x: 1 if x > 0 else -1 if x < 0 else 0
+# 检测是否是平稳序列并处理非平稳序列
+def AdfTest(index_list):
+    adftest = ADF(index_list)
+    # 返回值依次为adf,pvalue,usedlag,nobs,critical values,icbest,regresults,resstore
+    i = 0
+    for key, value in adftest[4].items():
+        if value < adftest[0]:
+            i += 1
+    # 假如adf值小于两个水平值，p值小于0.05，则判断为平稳序列
+    if i <= 1 and adftest[1] < 0.01:
+        return 1
+    else:
+        return 0
 
-    for i in range(m, n+1):
-        cD = coeff[i]
-        for j in range(len(cD)):
-            Tr = np.sqrt(2*np.log(len(cD)))   #计算阈值
-            if cD[j] >= Tr:
-                coeff[i][j] = sgn(cD[j]) - Tr  # 向零收缩
+# 检测是否是非白噪声序列
+# def whitenoise(index_list):
+#     whitenoisetest = acorr_ljungbox(index_list, lags=1)
+#     # lags 为滞后数,返回统计量和p值
+#     # 假如p值小于0.05，则判断为非白噪声序列
+#     if whitenoisetest[1] < 0.05:
+#         print('No white noise...')
+#         return index_list
+#     else:
+
+def Timeline(index_list, maxdiffn):
+    D_data = index_list.copy()
+    stationary_result = AdfTest(D_data)
+    if stationary_result == 1:
+        print('Stationary series...')
+    else:
+        i = 0
+        # 假如是平稳时间序列，则返回，如果不是，则差分，直到最大差分次数
+        while i < maxdiffn:
+            if AdfTest(D_data) == 1:
+                break
             else:
-                coeff[i][j] = 0  # 低于阈值置零
-
-    #重构
-    denoised_index = pywt.waverec(coeff, wavefunc)
-    return denoised_index
+                D_data = np.diff(D_data)
+                print('Diff time: '+str(i+1))
+    return D_data
 
 #AutoEncoder
 def run_sparse_auto_encoder(n_input=16, n_hidden_1=5, batch_size=2048, transfer=tf.nn.sigmoid, epoches=500, rho=0.5,
@@ -113,8 +135,8 @@ def run_sparse_auto_encoder(n_input=16, n_hidden_1=5, batch_size=2048, transfer=
         df1 = pd.read_csv(file_path)
         if q == 0:
             join_df = df1
-        else:
-            pd.concat([join_df, df1])
+        # else:
+        #     pd.concat([join_df, df1])
     result_df = join_df.loc[:, ['alpha001', 'alpha002', 'alpha003', 'alpha004',
                                 'alpha006', 'alpha007', 'alpha008', 'alpha009', 'alpha010', 'alpha012',
                                 'alpha013', 'alpha014', 'alpha015', 'alpha016', 'alpha017', 'alpha018',
@@ -127,6 +149,12 @@ def run_sparse_auto_encoder(n_input=16, n_hidden_1=5, batch_size=2048, transfer=
                                 'ma_ma_ratio', 'macd', 'mfi', 'obv', 'pri_ma_ratio', 'price_efficiency',
                                 'pvt', 'return', 'roc', 'rsi', 'vma', 'vol_chg_rate',
                                 'volume_relative_ratio']]
+    # result_df = join_df.loc[:, ['amp', 'ar',
+    #                             'atr', 'bias', 'boll', 'br', 'cci', 'log_vol_chg_rate', 'logreturn',
+    #                             'ma_ma_ratio', 'macd', 'mfi', 'obv', 'pri_ma_ratio', 'price_efficiency',
+    #                             'pvt', 'return', 'roc', 'rsi', 'vma', 'vol_chg_rate',
+    #                             'volume_relative_ratio']]
+    # 22个技术指标，总共67个指标
     print(result_df.shape)
 
     # 去除nan值和inf值
@@ -154,18 +182,26 @@ def run_sparse_auto_encoder(n_input=16, n_hidden_1=5, batch_size=2048, transfer=
     scaled_result_df = scaler.transform(result_df)
     print(scaled_result_df.shape)
 
-    print('start wavelettransform...')
-    data_df = wt(scaled_result_df[:,0], 'db4', 3, 1, 3)
-    wavecol = 1
-    while(wavecol < 67):
-        print('start clomun {}'.format(wavecol))
-        wave_df = wt(scaled_result_df[:,wavecol], 'db4', 3, 1, 3)
-        data_df = np.vstack((data_df, wave_df))
-        wavecol += 1
-    #print(data_df.shape)
+    print('start Timeline...')
+    data_df = Timeline(scaled_result_df[:,0])
+    columns = 1
+    while(columns < 67):
+        print('start clomun {}'.format(columns))
+        timeline_df = Timeline(scaled_result_df[:, columns], 8)
+        print(timeline_df.shape)
+        i = 0
+        while i < scaled_result_df.shape[0] - timeline_df.shape[0]:
+            mean_df = timeline_df.mean()
+            timeline_df = np.append(timeline_df,mean_df)
+            print(timeline_df.shape)
+            i += 1
+        data_df = np.vstack((data_df, timeline_df))
+        print(data_df.shape)
+        columns += 1
+    print(data_df.shape)
     data_df = data_df.T
     print(data_df.shape)
-    print('finish wavelettransform...')
+    print('finish Timeline...')
 
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
@@ -200,11 +236,10 @@ def run_sparse_auto_encoder(n_input=16, n_hidden_1=5, batch_size=2048, transfer=
         print('finish model 1 ...')
 
 def main():
-    run_sparse_auto_encoder(n_input=67, n_hidden_1=10, epoches=20000, batch_size=2048, rho=0.1, beta=1.0, alpha=1e-4,
+    run_sparse_auto_encoder(n_input=67, n_hidden_1=10, epoches=400, batch_size=2048, rho=0.1, beta=1.0, alpha=1e-4,
                             lamda=1.0, transfer=tf.nn.sigmoid, decay=1.0, path='../feature/join_feature',
                             model_name='1_D_sigmoid', device='1')
 
 
 if __name__ == '__main__':
     main()
-
