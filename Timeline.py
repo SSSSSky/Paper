@@ -1,5 +1,5 @@
 '''
-SingleSparseAutoEncoder and WaveletTransform
+SingleSparseAutoEncoder and Timeline
 '''
 import os
 import numpy as np
@@ -13,38 +13,22 @@ from statsmodels.stats.diagnostic import acorr_ljungbox
 matplotlib.use('Agg')
 
 # 检测是否是平稳序列并处理非平稳序列
-def test_stationarity(timeseries):
-    dftest = ADF(timeseries, autolag='AIC')
+def AdfTest(index_list):
+    adftest = ADF(index_list)
     # 返回值依次为adf,pvalue,usedlag,nobs,critical values,icbest,regresults,resstore
-    return dftest[1]
-
-# 差分
-def best_diff(index_list, maxdiff = 8):
-    p_set ={}
-    for i in range(0, maxdiff):
-        temp = index_list.copy()
-        if i == 0:
-            temp = temp
-        else:
-            temp = temp.diff(i)
-            temp = temp.drop(temp.iloc[:i].index)  # 差分后，前几行的数据会变成nan，所以删掉
-        pvalue = test_stationarity(temp)
-        p_set[i] = pvalue
-        p_df = pd.DataFrame.from_dict(p_set, orient="index")
-        p_df.columns = ['p_value']
     i = 0
-    while i < len(p_df):
-        if p_df['p_value'][i] < 0.01:
-            bestdiff = i
-            break
-        i += 1
-    return bestdiff
-
-def Diff(index_list, diffn):
-    if diffn != 0:
-        index_list =index_list.apply(lambda x:float(x)).diff(diffn)
-    index_list.dropna(inplace=True)
-    return index_list
+    for key, value in adftest[4].items():
+        if value < adftest[0]:
+            i += 1
+    # 假如adf值小于两个水平值，p值小于0.05，则判断为平稳序列
+    if i <= 1 and adftest[1] < 0.05:
+        print('Stationary series...')
+        return index_list
+    # 假如不是平稳序列，就对其进行差分
+    else:
+        D_data = np.diff(index_list)
+        # result = AdfTest(D_data)
+        return D_data
 
 # 检测是否是非白噪声序列
 # def whitenoise(index_list):
@@ -58,15 +42,7 @@ def Diff(index_list, diffn):
 
 
 def Timeline(index_list):
-    stationary_result = test_stationarity(index_list)
-    if stationary_result < 0.01:
-        print('Stationary series...')
-    else:
-        diffn = best_diff(index_list, maxdiff= 8)
-        index_list = Diff(index_list, diffn)
-        print('Diff times:'+str(diffn))
-    return index_list
-
+    stationary_result = AdfTest(index_list)
     return stationary_result
 
 #AutoEncoder
@@ -194,9 +170,10 @@ def run_sparse_auto_encoder(n_input=16, n_hidden_1=5, batch_size=2048, transfer=
         i = 0
         while i < scaled_result_df.shape[0] - timeline_df.shape[0]:
             mean_df = timeline_df.mean()
-            timeline_df = np.append((timeline_df, mean_df))
+            timeline_df = np.append(timeline_df,mean_df)
+            print(timeline_df.shape)
             i += 1
-        data_df = np.vstack(data_df, timeline_df)
+        data_df = np.vstack((data_df, timeline_df))
         print(data_df.shape)
         columns += 1
     print(data_df.shape)
@@ -232,11 +209,10 @@ def run_sparse_auto_encoder(n_input=16, n_hidden_1=5, batch_size=2048, transfer=
         print('finish model 1 ...')
 
 def main():
-    run_sparse_auto_encoder(n_input=67, n_hidden_1=10, epoches=20000, batch_size=2048, rho=0.1, beta=1.0, alpha=1e-4,
+    run_sparse_auto_encoder(n_input=67, n_hidden_1=10, epoches=400, batch_size=2048, rho=0.1, beta=1.0, alpha=1e-4,
                             lamda=1.0, transfer=tf.nn.sigmoid, decay=1.0, path='../feature/join_feature',
                             model_name='1_D_sigmoid', device='1')
 
 
 if __name__ == '__main__':
     main()
-
