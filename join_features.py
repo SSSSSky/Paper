@@ -5,7 +5,21 @@ import pandas as pd
 
 def seperateData(path):
     df1 = pd.read_csv(path)
-    print(df1.head())
+    #print(df1.head())
+    train_df = df1[df1.DateTime < '20150101']
+    valid_df = df1[(df1.DateTime >= '20150101') & (df1.DateTime < '20170101')]
+    test_df = df1[df1.DateTime >= '20170101']
+    print('train_df:')
+    print(train_df.head())
+    print(train_df.tail())
+    print('valid_df:')
+    print(valid_df.head())
+    print(valid_df.tail())
+    print('test_df:')
+    print(test_df.head())
+    print(test_df.tail())
+    
+
 
 def main():
     # path = '../feature/join_feature'
@@ -45,14 +59,11 @@ def main():
     # pd.DataFrame(data=technical_df, index=technical_df.index, columns=technical_df.columns).to_csv('../feature/technical_all.csv')
     # pd.DataFrame(data=alpha_df, index=alpha_df.index, columns=alpha_df.columns).to_csv('../feature/alpha_all.csv')
 
-    #temp =df1[df1.DateTime == '20150105 0931']
-    #print(temp)
-    #print(df1[df1.DateTime == '20141231 1500'])
 
     technical_path = '../feature/technical_all.csv'
     alpha_path = '../feature/alpha_all.csv'
     seperateData(technical_path)
-    seperateData(alpha_path)
+    #seperateData(alpha_path)
 
 
 
