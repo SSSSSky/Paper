@@ -1,5 +1,7 @@
 import os
 import pandas as pd
+import os
+import pandas as pd
 
 def main():
     path = '../feature/join_feature'
@@ -7,14 +9,16 @@ def main():
     files.sort()
     q = 0
     for file in files:
+        q += 1
         file_path = os.path.join(path, file)
         df1 = pd.read_csv(file_path)
-        if q == 0:
+        if q == 1:
             join_df = df1
         else:
-            pd.concat([join_df, df1])
+            join_df = pd.concat([join_df, df1])
+            print(join_df.shape)
             # join_df 就是全部的特征数据
-
+    join_df = join_df.sort_values(by='DateTime')
     # 取10个技术指标
     technical_df = join_df.loc[:, ['SecCode', 'DateTime', 'bias', 'boll', 'cci',
                                    'ma_ma_ratio', 'price_efficiency', 'logreturn', 'rsi', 'mfi', 'ar', 'macd']]
@@ -31,9 +35,16 @@ def main():
 
     print(technical_df.shape)
     print(alpha_df.shape)
+    print(technical_df.head())
+    print(alpha_df.head())
 
     pd.DataFrame(data=technical_df, index=technical_df.index, columns=technical_df.columns).to_csv('../feature/technical_all.csv')
     pd.DataFrame(data=alpha_df, index=alpha_df.index, columns=alpha_df.columns).to_csv('../feature/alpha_all.csv')
+
+    #temp =df1[df1.DateTime == '20150105 0931']
+    #print(temp)   
+    #print(df1[df1.DateTime == '20141231 1500']) 
+
 
 
 if __name__ == '__main__':
