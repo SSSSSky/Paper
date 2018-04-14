@@ -3,22 +3,22 @@ import pandas as pd
 import os
 import pandas as pd
 
+
 def seperateData(path):
     df1 = pd.read_csv(path)
-    #print(df1.head())
     train_df = df1[df1.DateTime < '20150101']
     valid_df = df1[(df1.DateTime >= '20150101') & (df1.DateTime < '20170101')]
     test_df = df1[df1.DateTime >= '20170101']
-    print('train_df:')
-    print(train_df.head())
-    print(train_df.tail())
-    print('valid_df:')
-    print(valid_df.head())
-    print(valid_df.tail())
-    print('test_df:')
-    print(test_df.head())
-    print(test_df.tail())
-    
+    # print('train_df:')
+    # print(train_df.head())
+    # print(train_df.tail())
+    # print('valid_df:')
+    # print(valid_df.head())
+    # print(valid_df.tail())
+    # print('test_df:')
+    # print(test_df.head())
+    # print(test_df.tail())
+    return train_df, valid_df, test_df
 
 
 def main():
@@ -62,10 +62,20 @@ def main():
 
     technical_path = '../feature/technical_all.csv'
     alpha_path = '../feature/alpha_all.csv'
-    seperateData(technical_path)
-    #seperateData(alpha_path)
-
-
+    technical_train_df, technical_valid_df, technical_test_df = seperateData(technical_path)
+    alpha_train_df, alpha_valid_df, alpha_test_df = seperateData(alpha_path)
+    pd.DataFrame(data=technical_train_df, index=technical_train_df.index, columns=technical_train_df.columns).to_csv('../Data/AutoEncoder/train/technical_train_df.csv')
+    print('finish technical_train_df.csv ...')
+    pd.DataFrame(data=technical_valid_df, index=technical_valid_df.index, columns=technical_valid_df.columns).to_csv('../Data/AutoEncoder/valid/technical_valid_df.csv')
+    print('finish technical_valid_df.csv ...')
+    pd.DataFrame(data=technical_test_df, index=technical_test_df.index, columns=technical_test_df.columns).to_csv('../Data/AutoEncoder/test/technical_test_df.csv')
+    print('finish technical_test_df.csv ...')
+    pd.DataFrame(data=alpha_train_df, index=alpha_train_df.index, columns=alpha_train_df.columns).to_csv('../Data/AutoEncoder/train/alpha_train_df.csv')
+    print('finish alpha_train_df.csv ...')
+    pd.DataFrame(data=alpha_valid_df, index=alpha_valid_df.index, columns=alpha_valid_df.columns).to_csv('../Data/AutoEncoder/valid/alpha_valid_df.csv')
+    print('finish alpha_valid_df.csv ...')
+    pd.DataFrame(data=alpha_test_df, index=alpha_test_df.index, columns=alpha_test_df.columns).to_csv('../Data/AutoEncoder/test/alpha_test_df.csv')
+    print('finish alpha_test_df.csv ...')
 
 if __name__ == '__main__':
     main()
