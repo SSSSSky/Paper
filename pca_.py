@@ -9,22 +9,70 @@ from sklearn import preprocessing
 from sklearn.decomposition import PCA
 import matplotlib
 matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
-# PCA
-def deal_with_pca(df):
-    pca = PCA(n_components= 30)
+# 预处理
+def preprocess(df):
+    df[df == np.inf] = np.nan
+    df[df == -np.inf] = np.nan
+    df.reset_index(inplace=True)
+    df = df.groupby('SecCode').ffill()  # 使用前时刻的值填充缺失值
+    df.set_index(['SecCode', 'DateTime'], inplace=True)
+    # df['br'][df['br'] > 30000] = 30000    # 去除br异常值
+    # df['br'][df['br'] < -30000] = -30000
+
+    md = df.median()
+    MAD = (df - md).abs().median()
+    up_bound = md + 3 * MAD
+    lo_bound = md - 3 * MAD
+    # print(up_bound)
+    # print(lo_bound)
+    for i in df.columns:
+        df[i][df[i] > up_bound[i]] = up_bound[i]
+        df[i][df[i] < lo_bound[i]] = lo_bound[i]
+
+    #数据标准化
+    dropped_df = df.dropna()
+    scaler = preprocessing.StandardScaler().fit(dropped_df)
+
+    # 平均值填充缺失值
+    fill_na_dict = {}
+    for i in range(len(df.columns)):
+        fill_na_dict[df.columns[i]] = scaler.mean_[i]
+    print(fill_na_dict)
+    df.fillna(fill_na_dict, inplace=True)
+    scaled_df = scaler.transform(df)
+    print(scaled_df.shape)
+
+    return scaled_df
+
+# PCA处理，com是降维后的维数
+def deal_with_pca(df, com):
+    pca = PCA(n_components= com)
     principalCompoents = pca.fit_transform(df)
     return principalCompoents
 
+# 对一个数据集进行pca处理，
+def pca_(df, types):
+    print('start {} pca...'.format(types))
+    data_df = deal_with_pca(df, 11)
+    print('pca.shape:{}'.format(data_df.shape))
+    print('finish {} pca...'.format(types))
+    return data_df
+
 #AutoEncoder
 def run_sparse_auto_encoder(n_input=16, n_hidden_1=5, batch_size=2048, transfer=tf.nn.sigmoid, epoches=500, rho=0.5,
-                            beta=3.0, lamda=0.001, alpha=0.00005, decay=1.0, path='', model_name='autoencoder',
-                            device='0'):
+                            beta=3.0, lamda=0.001, alpha=0.00005, decay=1.0,
+                            train_dataset='', valid_dataset='', test_dataset='', model_name='autoencoder', device='0'):
     print(
         'model_name:{}\nn_input:{}\nn_hidden_1:{}\nbatch_size:{}\ntransfer:{}\nepochs:{}\nrho:{}\nbeta:{}\nlamda:{}\nalpha:{}\ndecay:{}\ndevice:{}'.format(
             model_name, n_input, n_hidden_1, batch_size, transfer.__name__, epoches, rho, beta, lamda, alpha, decay,
             device))
     os.environ["CUDA_VISIBLE_DEVICES"] = device
+    print('training_sets: {}'.format(train_dataset))
+    print('validating_sets: {}'.format(valid_dataset))
+    print('testing_sets: {}'.format(test_dataset))
+
     N_INPUT = n_input
     N_HIDDEN_1 = n_hidden_1
     N_OUTPUT_1 = N_INPUT
@@ -88,64 +136,28 @@ def run_sparse_auto_encoder(n_input=16, n_hidden_1=5, batch_size=2048, transfer=
     # tf.summary.histogram('model_one_hidden', model_one_hidden)
     # tf.summary.histogram('model_one_out', model_one_out)
 
+
     # =======================================================================================
     # 训练集
-    path = '../feature/join_feature'
-    files = os.listdir(path)
-    files.sort()
-    q = 0
-    for file in files:
-        file_path = os.path.join(path, file)
-        df1 = pd.read_csv(file_path)
-        if q == 0:
-            join_df = df1
-        else:
-            pd.concat([join_df, df1])
-    result_df = join_df.loc[:, ['alpha001', 'alpha002', 'alpha003', 'alpha004',
-                                'alpha006', 'alpha007', 'alpha008', 'alpha009', 'alpha010', 'alpha012',
-                                'alpha013', 'alpha014', 'alpha015', 'alpha016', 'alpha017', 'alpha018',
-                                'alpha019', 'alpha020', 'alpha021', 'alpha022', 'alpha023', 'alpha024',
-                                'alpha026', 'alpha028', 'alpha029', 'alpha030', 'alpha031', 'alpha033',
-                                'alpha034', 'alpha035', 'alpha037', 'alpha038', 'alpha039', 'alpha040',
-                                'alpha043', 'alpha044', 'alpha045', 'alpha046', 'alpha049', 'alpha051',
-                                'alpha052', 'alpha053', 'alpha054', 'alpha055', 'alpha060', 'amp', 'ar',
-                                'atr', 'bias', 'boll', 'br', 'cci', 'log_vol_chg_rate', 'logreturn',
-                                'ma_ma_ratio', 'macd', 'mfi', 'obv', 'pri_ma_ratio', 'price_efficiency',
-                                'pvt', 'return', 'roc', 'rsi', 'vma', 'vol_chg_rate',
-                                'volume_relative_ratio']]
-    print(result_df.shape)
+    train_df = pd.read_csv(train_dataset, index_col=['SecCode', 'DateTime'])
+    print(train_df.shape)
+    scaled_train_df = preprocess(train_df)
+    print(scaled_train_df.shape)
+    pca_train_df = pca_(scaled_train_df, 'train_data')
 
-    # 去除nan值和inf值
-    result_df[result_df == np.inf] = np.nan
-    result_df[result_df == -np.inf] = np.nan
-    md = result_df.median()
-    MAD = (result_df - md).abs().median()
-    up_bound = md + 3 * MAD
-    lo_bound = md - 3 * MAD
-    print(up_bound)
-    print(lo_bound)
-    for i in result_df.columns:
-        result_df[i][result_df[i] > up_bound[i]] = up_bound[i]
-        result_df[i][result_df[i] < lo_bound[i]] = lo_bound[i]
-    droped_result_df = result_df.dropna()
+    # 验证集
+    valid_df = pd.read_csv(valid_dataset, index_col=['SecCode', 'DateTime'])
+    print(valid_df.shape)
+    scaled_valid_df = preprocess(valid_df)
+    print(scaled_valid_df.shape)
+    pca_valid_df = pca_(scaled_valid_df, 'valid_data')
 
-    scaler = preprocessing.StandardScaler().fit(droped_result_df)
-
-    # 平均值填充缺失值
-    fill_na_dict = {}
-    for i in range(len(result_df.columns)):
-        fill_na_dict[result_df.columns[i]] = scaler.mean_[i]
-    print(fill_na_dict)
-    result_df.fillna(fill_na_dict, inplace=True)
-    scaled_result_df = scaler.transform(result_df)
-    print(scaled_result_df.shape)
-
-    print('start pca process...')
-    data_df = deal_with_pca(scaled_result_df)
-    print(data_df.shape)
-    # data_df = data_df.T
-    # print(data_df.shape)
-    print('finish pca process...')
+    # 预测集
+    test_df = pd.read_csv(test_dataset, index_col=['SecCode', 'DateTime'])
+    print(test_df.shape)
+    scaled_test_df = preprocess(test_df)
+    print(scaled_test_df.shape)
+    pca_test_df = pca_(scaled_test_df, 'test_data')
 
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
@@ -156,35 +168,58 @@ def run_sparse_auto_encoder(n_input=16, n_hidden_1=5, batch_size=2048, transfer=
                     n_hidden_1)
         init = tf.global_variables_initializer()
         sess.run(init)
-        trainig_losses = []
+        training_losses = []
         validating_losses = []
-        print('train model 1 ...')
+
+        print('start training sparse_autoencoder ...')
         for i in range(EPOCHES):
-            for start, end in zip(range(0, len(data_df), BATCH_SIZE),
-                                  range(BATCH_SIZE, len(data_df), BATCH_SIZE)):
-                input_ = data_df[start: end]
+            for start, end in zip(range(0, len(pca_train_df), BATCH_SIZE),
+                                  range(BATCH_SIZE, len(pca_train_df), BATCH_SIZE)):
+                input_ = pca_train_df[start: end]
                 sess.run(train_op_1, feed_dict={model_one_X: input_, epoch: i})
-            cost = sess.run(model_one_cost, feed_dict={model_one_X: data_df})
-            # valid_cost = sess.run(model_one_cost, feed_dict={model_one_X: scaled_valid_df})
-            sparse_cost = sess.run(model_one_cost_sparse, feed_dict={model_one_X: data_df})
-            cost_J = sess.run(model_one_cost_J, feed_dict={model_one_X: data_df})
-            # trainig_losses.append(cost)
-            # validating_losses.append(valid_cost)
+            cost = sess.run(model_one_cost, feed_dict={model_one_X: pca_train_df})
+            valid_cost = sess.run(model_one_cost, feed_dict={model_one_X: pca_valid_df})
+            sparse_cost = sess.run(model_one_cost_sparse, feed_dict={model_one_X: pca_train_df})
+            cost_J = sess.run(model_one_cost_J, feed_dict={model_one_X: pca_train_df})
+            training_losses.append(cost)
+            validating_losses.append(valid_cost)
             print('{} Epoch {}: cost = {}  cost_J = {} sparse_cost = {}'
                   .format(model_name, i, cost, cost_J, sparse_cost))
+        print('finish sparse_autoencoder ...')
 
-        # 输出隐藏层，即所需要的信息
-        hidden_result = sess.run(model_one_hidden, feed_dict={scaled_result_df})
-        print(hidden_result.shape)
+        print('get hidden result...')
+        # 获得隐藏层的数据，即所需要的信息
+        train_hidden_result = sess.run(model_one_hidden, feed_dict={pca_train_df})
+        valid_hidden_result = sess.run(model_one_hidden, feed_dict={pca_valid_df})
+        test_hidden_result = sess.run(model_one_hidden, feed_dict={pca_test_df})
 
-        print('finish model 1 ...')
+        print('train_hidden_result.shape: {}'.format(train_hidden_result.shape))
+        print('valid_hidden_result.shape: {}'.format(valid_hidden_result.shape))
+        print('test_hidden_result.shape: {}'.format(test_hidden_result.shape))
+
+
+        # 保存自编码器中间隐藏层输出的结果
+        # print('save auencoder result...')
+        # pd.DataFrame(data=train_hidden_result, index=train_df.index).to_csv('../Data/AutoEncoder/hidden_result/train_hidden_result_pca.csv')
+        # pd.DataFrame(data=valid_hidden_result, index=valid_df.index).to_csv('../Data/AutoEncoder/hidden_result/valid_hidden_result_pca.csv')
+        # pd.DataFrame(data=test_hidden_result, index=test_df.index).to_csv('../Data/AutoEncoder/hidden_result/test_hidden_result_pca.csv')
+
 
 def main():
-    run_sparse_auto_encoder(n_input=67, n_hidden_1=10, epoches=20000, batch_size=2048, rho=0.1, beta=1.0, alpha=1e-4,
-                            lamda=1.0, transfer=tf.nn.sigmoid, decay=1.0, path='../feature/join_feature',
-                            model_name='1_D_sigmoid', device='1')
+    run_sparse_auto_encoder(n_input=22, n_hidden_1=10, epoches=1000, batch_size=2048, rho=0.1, beta=1.0, alpha=1e-4,
+                            lamda=1.0, transfer=tf.nn.sigmoid, decay=1.0,
+                            train_dataset='../Data/AutoEncoder/train/technical_train_df.csv',
+                            valid_dataset='../Data/AutoEncoder/valid/technical_valid_df.csv',
+                            test_dataset='../Data/AutoEncoder/test/technical_test_df.csv',
+                            model_name='SparseAutoEncoder', device='1')
+    # run_sparse_auto_encoder(n_input=22, n_hidden_1=10, epoches=1000, batch_size=2048, rho=0.1, beta=1.0, alpha=1e-4, lamda=1.0, transfer=tf.nn.sigmoid, decay=1.0,
+    #                         train_dataset='../Data/AutoEncoder/train/alpha_train_df.csv',
+    #                         valid_dataset='../Data/AutoEncoder/valid/alpha_valid_df.csv',
+    #                         test_dataset='../Data/AutoEncoder/test/alpha_test_df.csv',
+    #                         model_name='SparseAutoEncoder', device='1')
 
 
 if __name__ == '__main__':
     main()
+
 
