@@ -22,24 +22,26 @@ def seperateData(path):
 
 
 def main():
-    # path = '../feature/join_feature'
-    # files = os.listdir(path)
-    # files.sort()
-    # q = 0
-    # for file in files:
-    #     q += 1
-    #     file_path = os.path.join(path, file)
-    #     df1 = pd.read_csv(file_path)
-    #     if q == 1:
-    #         join_df = df1
-    #     else:
-    #         join_df = pd.concat([join_df, df1])
-    #         print(join_df.shape)
-    #         # join_df 就是全部的特征数据
-    # join_df = join_df.sort_values(by='DateTime')
-    # # 取10个技术指标
-    # technical_df = join_df.loc[:, ['SecCode', 'DateTime', 'bias', 'boll', 'cci',
-    #                                'ma_ma_ratio', 'price_efficiency', 'logreturn', 'rsi', 'mfi', 'ar', 'macd']]
+    path = '../feature/join_feature'
+    files = os.listdir(path)
+    files.sort()
+    q = 0
+    for file in files:
+        q += 1
+        file_path = os.path.join(path, file)
+        df1 = pd.read_csv(file_path)
+        if q == 1:
+            join_df = df1
+        else:
+            join_df = pd.concat([join_df, df1])
+            print(join_df.shape)
+            # join_df 就是全部的特征数据
+    join_df = join_df.sort_values(by='DateTime')
+    # 取20个技术指标
+    technical_df = join_df.loc[:, ['SecCode', 'DateTime', 'amp', 'ar', 'atr', 'bias', 'boll',
+                                   'br', 'cci', 'log_vol_chg_rate', 'logreturn', 'ma_ma_ratio',
+                                   'macd', 'mfi', 'obv', 'pri_ma_ratio', 'price_efficiency',
+                                   'roc', 'rsi', 'vma', 'vol_chg_rate', 'volume_relative_ratio']]
     #
     # # 取45个alpha指标
     # alpha_df = join_df.loc[:, ['SecCode', 'DateTime', 'alpha001', 'alpha002', 'alpha003', 'alpha004',
@@ -56,26 +58,26 @@ def main():
     # print(technical_df.head())
     # print(alpha_df.head())
     #
-    # pd.DataFrame(data=technical_df, index=technical_df.index, columns=technical_df.columns).to_csv('../feature/technical_all.csv')
+    pd.DataFrame(data=technical_df, index=technical_df.index, columns=technical_df.columns).to_csv('../feature/technical_all.csv')
+    print('finish technical_all.csv...')
     # pd.DataFrame(data=alpha_df, index=alpha_df.index, columns=alpha_df.columns).to_csv('../feature/alpha_all.csv')
 
-
     technical_path = '../feature/technical_all.csv'
-    alpha_path = '../feature/alpha_all.csv'
+    # alpha_path = '../feature/alpha_all.csv'
     technical_train_df, technical_valid_df, technical_test_df = seperateData(technical_path)
-    alpha_train_df, alpha_valid_df, alpha_test_df = seperateData(alpha_path)
+    # alpha_train_df, alpha_valid_df, alpha_test_df = seperateData(alpha_path)
     pd.DataFrame(data=technical_train_df, index=technical_train_df.index, columns=technical_train_df.columns).to_csv('../Data/AutoEncoder/train/technical_train_df.csv')
     print('finish technical_train_df.csv ...')
     pd.DataFrame(data=technical_valid_df, index=technical_valid_df.index, columns=technical_valid_df.columns).to_csv('../Data/AutoEncoder/valid/technical_valid_df.csv')
     print('finish technical_valid_df.csv ...')
     pd.DataFrame(data=technical_test_df, index=technical_test_df.index, columns=technical_test_df.columns).to_csv('../Data/AutoEncoder/test/technical_test_df.csv')
     print('finish technical_test_df.csv ...')
-    pd.DataFrame(data=alpha_train_df, index=alpha_train_df.index, columns=alpha_train_df.columns).to_csv('../Data/AutoEncoder/train/alpha_train_df.csv')
-    print('finish alpha_train_df.csv ...')
-    pd.DataFrame(data=alpha_valid_df, index=alpha_valid_df.index, columns=alpha_valid_df.columns).to_csv('../Data/AutoEncoder/valid/alpha_valid_df.csv')
-    print('finish alpha_valid_df.csv ...')
-    pd.DataFrame(data=alpha_test_df, index=alpha_test_df.index, columns=alpha_test_df.columns).to_csv('../Data/AutoEncoder/test/alpha_test_df.csv')
-    print('finish alpha_test_df.csv ...')
+    # pd.DataFrame(data=alpha_train_df, index=alpha_train_df.index, columns=alpha_train_df.columns).to_csv('../Data/AutoEncoder/train/alpha_train_df.csv')
+    # print('finish alpha_train_df.csv ...')
+    # pd.DataFrame(data=alpha_valid_df, index=alpha_valid_df.index, columns=alpha_valid_df.columns).to_csv('../Data/AutoEncoder/valid/alpha_valid_df.csv')
+    # print('finish alpha_valid_df.csv ...')
+    # pd.DataFrame(data=alpha_test_df, index=alpha_test_df.index, columns=alpha_test_df.columns).to_csv('../Data/AutoEncoder/test/alpha_test_df.csv')
+    # print('finish alpha_test_df.csv ...')
 
 if __name__ == '__main__':
     main()
