@@ -207,9 +207,9 @@ def run_sparse_auto_encoder(n_input=16, n_hidden_1=5, batch_size=2048, transfer=
 
         print('get hidden result...')
         # 获得隐藏层的数据，即所需要的信息
-        train_hidden_result = sess.run(model_one_hidden, feed_dict={wt_train_df})
-        valid_hidden_result = sess.run(model_one_hidden, feed_dict={wt_valid_df})
-        test_hidden_result = sess.run(model_one_hidden, feed_dict={wt_test_df})
+        train_hidden_result = sess.run(model_one_hidden, feed_dict={model_one_X: wt_train_df})
+        valid_hidden_result = sess.run(model_one_hidden, feed_dict={model_one_X: wt_valid_df})
+        test_hidden_result = sess.run(model_one_hidden, feed_dict={model_one_X: wt_test_df})
 
         print('train_hidden_result.shape: {}'.format(train_hidden_result.shape))
         print('valid_hidden_result.shape: {}'.format(valid_hidden_result.shape))
@@ -217,10 +217,10 @@ def run_sparse_auto_encoder(n_input=16, n_hidden_1=5, batch_size=2048, transfer=
 
 
         # 保存自编码器中间隐藏层输出的结果
-        # print('save auencoder result...')
-        # pd.DataFrame(data=train_hidden_result, index=train_df.index).to_csv('../Data/AutoEncoder/wt_hidden_result/train/techinical_train_hidden_result_wavelettransform.csv')
-        # pd.DataFrame(data=valid_hidden_result, index=valid_df.index).to_csv('../Data/AutoEncoder/wt_hidden_result/valid/technical_valid_hidden_result_wavelettransform.csv')
-        # pd.DataFrame(data=test_hidden_result, index=test_df.index).to_csv('../Data/AutoEncoder/wt_hidden_result/test/technical_test_hidden_result_wavelettransform.csv')
+        print('save auencoder result...')
+        pd.DataFrame(data=train_hidden_result, index=train_df.index).to_csv('../Data/AutoEncoder/wt_hidden_result/train/techinical_train_hidden_result_wavelettransform.csv')
+        pd.DataFrame(data=valid_hidden_result, index=valid_df.index).to_csv('../Data/AutoEncoder/wt_hidden_result/valid/technical_valid_hidden_result_wavelettransform.csv')
+        pd.DataFrame(data=test_hidden_result, index=test_df.index).to_csv('../Data/AutoEncoder/wt_hidden_result/test/technical_test_hidden_result_wavelettransform.csv')
 
         # print('save auencoder result...')
         # pd.DataFrame(data=train_hidden_result, index=train_df.index).to_csv('../Data/AutoEncoder/wt_hidden_result/train/alpha_train_hidden_result_wavelettransform.csv')
@@ -229,13 +229,13 @@ def run_sparse_auto_encoder(n_input=16, n_hidden_1=5, batch_size=2048, transfer=
 
 
 def main():
-    run_sparse_auto_encoder(n_input=22, n_hidden_1=10, epoches=1000, batch_size=2048, rho=0.1, beta=1.0, alpha=1e-4,
+    run_sparse_auto_encoder(n_input=22, n_hidden_1=10, epoches=300, batch_size=2048, rho=0.1, beta=1.0, alpha=1e-4,
                             lamda=1.0, transfer=tf.nn.sigmoid, decay=1.0,
                             train_dataset='../Data/AutoEncoder/train/technical_train_df.csv',
                             valid_dataset='../Data/AutoEncoder/valid/technical_valid_df.csv',
                             test_dataset='../Data/AutoEncoder/test/technical_test_df.csv',
                             model_name='SparseAutoEncoder', device='1')
-    # run_sparse_auto_encoder(n_input=47, n_hidden_1=10, epoches=1000, batch_size=2048, rho=0.1, beta=1.0, alpha=1e-4, lamda=1.0, transfer=tf.nn.sigmoid, decay=1.0,
+    # run_sparse_auto_encoder(n_input=47, n_hidden_1=10, epoches=300, batch_size=2048, rho=0.1, beta=1.0, alpha=1e-4, lamda=1.0, transfer=tf.nn.sigmoid, decay=1.0,
     #                         train_dataset='../Data/AutoEncoder/train/alpha_train_df.csv',
     #                         valid_dataset='../Data/AutoEncoder/valid/alpha_valid_df.csv',
     #                         test_dataset='../Data/AutoEncoder/test/alpha_test_df.csv',
@@ -244,5 +244,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-
 
