@@ -25,15 +25,18 @@ def get_index_stocks():
     client.close()
     chg_df = pd.DataFrame({'SecCode' : index_stocks, 'DateTime' : date_chg})
     print(chg_df.shape)
-    print(chg_df.head(51))
-    i = chg_df.shape[0] / 50
+    #print(chg_df.head(51))
+    i = chg_df.shape[0]
     j = 0
-    while (j < i-1):
+    print(i/50)
+    while (j < i-50):
+        print(date_chg[j])
         one_chg_df = chg_df[j:j+50]
         print(one_chg_df.shape)
-        print(one_chg_df)
-    # pd.DataFrame(data=chg_df, index=chg_df.index).to_csv('../Data/AutoEncoder/tl_hidden_result/train/techinical_train_hidden_result_timeline.csv')
-
+        #print(one_chg_df)
+        pd.DataFrame(data=one_chg_df, index=one_chg_df.index).to_csv('../../feature/cons_chg/{}.csv'.format(date_chg[j]))
+        j += 50
+         
 def main():
     get_index_stocks()
 
