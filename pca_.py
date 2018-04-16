@@ -189,9 +189,9 @@ def run_sparse_auto_encoder(n_input=16, n_hidden_1=5, batch_size=2048, transfer=
 
         print('get hidden result...')
         # 获得隐藏层的数据，即所需要的信息
-        train_hidden_result = sess.run(model_one_hidden, feed_dict={pca_train_df})
-        valid_hidden_result = sess.run(model_one_hidden, feed_dict={pca_valid_df})
-        test_hidden_result = sess.run(model_one_hidden, feed_dict={pca_test_df})
+        train_hidden_result = sess.run(model_one_hidden, feed_dict={model_one_X: pca_train_df})
+        valid_hidden_result = sess.run(model_one_hidden, feed_dict={model_one_X: pca_valid_df})
+        test_hidden_result = sess.run(model_one_hidden, feed_dict={model_one_X: pca_test_df})
 
         print('train_hidden_result.shape: {}'.format(train_hidden_result.shape))
         print('valid_hidden_result.shape: {}'.format(valid_hidden_result.shape))
@@ -225,5 +225,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-
 
