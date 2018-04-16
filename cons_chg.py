@@ -13,13 +13,8 @@ def get_database_conn(host_name='mongodb://172.16.17.139:27017/',
     collection = db[collection_name]
     return client, db, collection
 
-# 获取指数成分股代码
+# 获取变更成分股
 def get_index_stocks():
-    '''
-    :param symbol: stock symbol
-    :param date: search date
-    :return: constituent stocks of the index in the date.
-    '''
     client, _, collection = get_database_conn(db_name='stock_basic', collection_name='index_cons_change')
     query = collection.find({'Indexcd': '000016'})
     index_stocks = []
@@ -31,7 +26,13 @@ def get_index_stocks():
     chg_df = pd.DataFrame({'SecCode' : index_stocks, 'DateTime' : date_chg})
     print(chg_df.shape)
     print(chg_df.head(51))
-    #pd.DataFrame(data=train_hidden_result, index=train_df.index).to_csv('../Data/AutoEncoder/tl_hidden_result/train/techinical_train_hidden_result_timeline.csv')
+    i = chg_df.shape[0] / 50
+    j = 0
+    while (j < i-1):
+        one_chg_df = chg_df[j:j+50]
+        print(one_chg_df.shape)
+        print(one_chg_df)
+    # pd.DataFrame(data=chg_df, index=chg_df.index).to_csv('../Data/AutoEncoder/tl_hidden_result/train/techinical_train_hidden_result_timeline.csv')
 
 def main():
     get_index_stocks()
