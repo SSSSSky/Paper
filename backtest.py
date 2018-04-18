@@ -87,9 +87,9 @@ def main():
                 print(model_name, mode, method)
 
                 print('Reading predict results...')
-                train_predict_df = pd.read_csv('predict_weights/train_predict_weights_{}_mode={}.csv'.format(model_name, mode), index_col='DateTime')
-                valid_predict_df = pd.read_csv('predict_weights/valid_predict_weights_{}_mode={}.csv'.format(model_name, mode), index_col='DateTime')
-                test_predict_df = pd.read_csv('predict_weights/test_predict_weights_{}_mode={}.csv'.format(model_name, mode), index_col='DateTime')
+                train_predict_df = pd.read_csv('..Data/Model2/predict_weights/train_predict_weights_{}_mode={}.csv'.format(model_name, mode), index_col='DateTime')
+                valid_predict_df = pd.read_csv('..Data/Model2/predict_weights/valid_predict_weights_{}_mode={}.csv'.format(model_name, mode), index_col='DateTime')
+                test_predict_df = pd.read_csv('..Data/Model2/predict_weights/test_predict_weights_{}_mode={}.csv'.format(model_name, mode), index_col='DateTime')
 
                 # 将预测的收益率向量转换为权重值
                 print('Normalizing weights...')
@@ -102,9 +102,9 @@ def main():
                 # test_norm_min_weights = normalize_neutral_weights('predict_weights/test_predict_weights_4_B_layer1_mode=normal.csv')
 
                 print('Reading targets...')
-                train_y = get_y('model2_predicts/train')
-                valid_y = get_y('model2_predicts/valid')
-                test_y = get_y('model2_predicts/test')
+                train_y = get_y('../Data/Model2/predicts/train')
+                valid_y = get_y('../Data/Model2/predicts/valid')
+                test_y = get_y('../Data/Model2/predicts/test')
 
                 print(train_predict_df.shape, train_y.shape)
                 print(valid_predict_df.shape, valid_y.shape)
@@ -197,7 +197,7 @@ def main():
                 index, = plt.plot(list(train_index_real_return), color='b')
                 plt.legend([my_strategy, index], ['Strategy', 'Benchmark-000016'], loc='upper left', fontsize=16)
                 plt.title('Train Net-Value Curve (20100104-20141212)', fontsize=18)
-                plt.savefig('predict_weights/fig/net_value/{}_{}_method={}_train.jpeg'.format(model_name, mode, method))
+                plt.savefig('..Data/Model2/predict_weights/fig/net_value/{}_{}_method={}_train.jpeg'.format(model_name, mode, method))
                 # plt.show()
                 plt.close()
 
@@ -210,7 +210,7 @@ def main():
                 alpha, = plt.plot(np.array(train_real_return) - np.array(train_index_real_return), color='y')
                 plt.legend([alpha], ['alpha'], loc='upper left', fontsize=16)
                 plt.title('Train Alpha Curve (20100104-20141212)', fontsize=18)
-                plt.savefig('predict_weights/fig/alpha/{}_{}_method={}_train.jpeg'.format(model_name, mode, method))
+                plt.savefig('..Data/Model2/predict_weights/fig/alpha/{}_{}_method={}_train.jpeg'.format(model_name, mode, method))
                 # plt.show()
                 plt.close()
 
@@ -224,7 +224,7 @@ def main():
                 turnover_ma10, = plt.plot(list((train_norm_daily_weights - train_norm_daily_weights.shift()).abs().sum(axis=1).rolling(10).mean()))
                 plt.legend([turnover, turnover_ma10], ['turnover', 'turnover-10'], loc='upper left', fontsize=16)
                 plt.title('Train Turnover Curve (20100104-20141212)', fontsize=18)
-                plt.savefig('predict_weights/fig/turnover/{}_{}_method={}_train.jpeg'.format(model_name, mode, method))
+                plt.savefig('..Data/Model2/predict_weights/fig/turnover/{}_{}_method={}_train.jpeg'.format(model_name, mode, method))
                 # plt.show()
                 plt.close()
 
@@ -238,7 +238,7 @@ def main():
                 index, = plt.plot(list(valid_index_real_return), color='b')
                 plt.legend([my_strategy, index], ['Strategy', 'Benchmark-000016'], loc='upper left', fontsize=16)
                 plt.title('Valid Net-Value Curve (20141212-20161209)', fontsize=18)
-                plt.savefig('predict_weights/fig/net_value/{}_{}_method={}_valid.jpeg'.format(model_name, mode, method))
+                plt.savefig('..Data/Model/2predict_weights/fig/net_value/{}_{}_method={}_valid.jpeg'.format(model_name, mode, method))
                 # plt.show()
                 plt.close()
 
@@ -250,7 +250,7 @@ def main():
                 alpha, = plt.plot(np.array(valid_real_return) - np.array(valid_index_real_return), color='y')
                 plt.legend([alpha], ['alpha'], loc='upper left', fontsize=16)
                 plt.title('Valid Alpha Curve (20141212-20161209)', fontsize=18)
-                plt.savefig('predict_weights/fig/alpha/{}_{}_method={}_valid.jpeg'.format(model_name, mode, method))
+                plt.savefig('..Data/Model2/predict_weights/fig/alpha/{}_{}_method={}_valid.jpeg'.format(model_name, mode, method))
                 # plt.show()
                 plt.close()
 
@@ -263,7 +263,7 @@ def main():
                 turnover_ma10, = plt.plot(list((valid_norm_daily_weights - valid_norm_daily_weights.shift()).abs().sum(axis=1).rolling(10).mean()))
                 plt.legend([turnover, turnover_ma10], ['turnover', 'turnover-10'], loc='upper left', fontsize=16)
                 plt.title('Valid Turnover Curve (20141212-20161209)', fontsize=18)
-                plt.savefig('predict_weights/fig/turnover/{}_{}_method={}_valid.jpeg'.format(model_name, mode, method))
+                plt.savefig('..Data/Model2/predict_weights/fig/turnover/{}_{}_method={}_valid.jpeg'.format(model_name, mode, method))
                 # plt.show()
                 plt.close()
 
@@ -277,7 +277,7 @@ def main():
                 index, = plt.plot(list(test_index_real_return), color='b')
                 plt.legend([my_strategy, index], ['Strategy', 'Benchmark-000016'], loc='upper left', fontsize=16)
                 plt.title('Test Net-Value Curve (20161209-20171228)', fontsize=18)
-                plt.savefig('predict_weights/fig/net_value/{}_{}_method={}_test.jpeg'.format(model_name, mode, method))
+                plt.savefig('..Data/Model2/predict_weights/fig/net_value/{}_{}_method={}_test.jpeg'.format(model_name, mode, method))
                 # plt.show()
                 plt.close()
 
@@ -289,7 +289,7 @@ def main():
                 alpha, = plt.plot(np.array(test_real_return) - np.array(test_index_real_return), color='y')
                 plt.legend([alpha], ['alpha'], loc='upper left', fontsize=16)
                 plt.title('Test Alpha Curve (20161209-20171228)', fontsize=18)
-                plt.savefig('predict_weights/fig/alpha/{}_{}_method={}_test.jpeg'.format(model_name, mode, method))
+                plt.savefig('..Data/Model2/predict_weights/fig/alpha/{}_{}_method={}_test.jpeg'.format(model_name, mode, method))
                 # plt.show()
                 plt.close()
 
@@ -302,7 +302,7 @@ def main():
                 turnover_ma10, = plt.plot(list((test_norm_daily_weights - test_norm_daily_weights.shift()).abs().sum(axis=1).rolling(10).mean()))
                 plt.legend([turnover, turnover_ma10], ['turnover', 'turnover-10'], loc='upper left', fontsize=16)
                 plt.title('Test Turnover Curve (20161209-20171228)', fontsize=18)
-                plt.savefig('predict_weights/fig/turnover/{}_{}_method={}_test.jpeg'.format(model_name, mode, method))
+                plt.savefig('..Data/Model2/predict_weights/fig/turnover/{}_{}_method={}_test.jpeg'.format(model_name, mode, method))
                 # plt.show()
                 plt.close()
 
