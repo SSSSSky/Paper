@@ -3,9 +3,11 @@ import numpy as np
 import pandas as pd
 from sklearn import preprocessing
 
-def get_rnn_inputs(index_code, start_date, end_date, path, type):
+def get_rnn_inputs(index_code, start_date, end_date, path, type, df):
     train_encoding_df = pd.read_csv(path, dtype={'SecCode': np.str})
+
     print(train_encoding_df.shape)
+    print(train_encoding_df.head())
     train_encoding_df = train_encoding_df.reset_index().set_index(['SecCode', 'DateTime'])
     print(train_encoding_df.shape)
 
@@ -100,9 +102,11 @@ def normalize_predicts():
 
 
 def main():
-    get_rnn_inputs('000016', '20100101', '20150101', '../Data/AutoEncoder/hidden_result/train/alpha_train_hidden_result.csv', 'train')
-    get_rnn_inputs('000016', '20150101', '20170101', '../Data/AutoEncoder/hidden_result/valid/alpha_valid_hidden_result.csv', 'valid')
-    get_rnn_inputs('000016', '20170101', '20171231', '../Data/AutoEncoder/hidden_result/test/alpha_test_hidden_result.csv', 'test')
+    df = pd.read_csv('../feature/features/amp/000016_amp_20100104_20100630.csv')
+    df = df.loc['SecCode', 'DateTime']
+    get_rnn_inputs('000016', '20100101', '20150101', '../Data/AutoEncoder/hidden_result/train/alpha_train_hidden_result.csv', 'train', df)
+    get_rnn_inputs('000016', '20150101', '20170101', '../Data/AutoEncoder/hidden_result/valid/alpha_valid_hidden_result.csv', 'valid', df)
+    get_rnn_inputs('000016', '20170101', '20171231', '../Data/AutoEncoder/hidden_result/test/alpha_test_hidden_result.csv', 'test', df)
 
     get_rnn_predicts()
     # normalize_predicts()
